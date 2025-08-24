@@ -127,6 +127,18 @@
                         <option value="very-active">5. Muy Activo (ejercicio intenso diario o 2x/día)</option>
                     </select>
                 </div>
+
+                <!-- Goal/Deficit Input -->
+                <div class="md:col-span-2 lg:col-span-4">
+                    <label for="goal" class="block text-sm font-medium text-gray-700 mb-1">Tu Objetivo</label>
+                    <select id="goal" name="goal" required
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 transition duration-150 ease-in-out">
+                        <option value="" disabled selected>Selecciona tu objetivo</option>
+                        <option value="0">Mantener peso</option>
+                        <option value="500">Déficit leve (pérdida de peso)</option>
+                        <option value="750">Déficit moderado (pérdida de peso más rápida)</option>
+                    </select>
+                </div>
             </div>
 
             <!-- Submit Button -->
@@ -145,6 +157,13 @@
                 <h3 class="text-lg font-semibold text-green-700 mb-2">Tu Gasto Energético Diario (TDEE)</h3>
                 <p id="tdee-value" class="text-xl font-bold text-green-800">Cargando...</p>
                 <p class="text-sm text-gray-600 mt-2">Este es un estimado de las calorías que necesitas diariamente para mantener tu peso actual.</p>
+            </div>
+
+            <!-- Target Calories Section -->
+            <div id="target-calories-section" class="bg-blue-50 rounded-lg p-4 mb-6 shadow-inner border border-blue-200 hidden">
+                <h3 class="text-lg font-semibold text-blue-700 mb-2">Tu Objetivo Calórico Diario</h3>
+                <p id="target-calories-value" class="text-xl font-bold text-blue-800">Cargando...</p>
+                <p class="text-sm text-gray-600 mt-2">Este plan de comidas está diseñado para alcanzar este objetivo calórico.</p>
             </div>
 
             <!-- New Diet Button -->
@@ -201,6 +220,8 @@
             const nutritionForm = document.getElementById('nutrition-form');
             const resultsSection = document.getElementById('results');
             const tdeeValue = document.getElementById('tdee-value');
+            const targetCaloriesSection = document.getElementById('target-calories-section');
+            const targetCaloriesValue = document.getElementById('target-calories-value');
             const dietPlanContent = document.getElementById('diet-plan-content');
             const newDietBtn = document.getElementById('new-diet-btn');
             const macrosSection = document.getElementById('macros-section');
@@ -210,6 +231,7 @@
             const ageInput = document.getElementById('age');
             const genderSelect = document.getElementById('gender');
             const activitySelect = document.getElementById('activity');
+            const goalSelect = document.getElementById('goal');
 
             // Get unit selection elements
             const unitRadios = document.querySelectorAll('input[name="unit"]');
@@ -465,9 +487,9 @@
                 // Show results section
                 resultsSection.classList.remove('hidden');
                 newDietBtn.classList.remove('hidden');
-                
+
                 const unitElement = document.querySelector('input[name="unit"]:checked');
-                const unit = unitElement ? unitElement.value : 'metric'; 
+                const unit = unitElement ? unitElement.value : 'metric';
                 
                 let height, weight, weightLbs;
                 
@@ -488,6 +510,7 @@
                 const age = parseFloat(ageInput.value);
                 const gender = genderSelect.value;
                 const activity = activitySelect.value;
+                const deficit = parseFloat(goalSelect.value);
 
                 // Define activity multipliers
                 const activityMultipliers = {
@@ -508,12 +531,15 @@
 
                 // Calculate Total Daily Energy Expenditure (TDEE)
                 const tdee = bmr * activityMultipliers[activity];
+                const targetCalories = tdee - deficit;
 
-                // Display TDEE
+                // Display TDEE and Target Calories
                 tdeeValue.textContent = `${Math.round(tdee)} calorías/día`;
+                targetCaloriesSection.classList.remove('hidden');
+                targetCaloriesValue.textContent = `${Math.round(targetCalories)} calorías/día`;
 
-                // Generate and display the initial diet plan
-                generateRandomDiet(weightLbs);
+                // Generate and display the initial diet plan, now passing the targetCalories
+                generateRandomDiet(targetCalories, weightLbs);
                 
                 // Scroll to the results section smoothly
                 resultsSection.scrollIntoView({ behavior: 'smooth' });
@@ -523,20 +549,51 @@
             newDietBtn.addEventListener('click', () => {
                 const unit = document.querySelector('input[name="unit"]:checked').value;
                 let weightLbs;
+                let tdee;
+                
                 if (unit === 'metric') {
-                     weightLbs = parseFloat(weightKgInput.value) * 2.20462;
+                    weightLbs = parseFloat(weightKgInput.value) * 2.20462;
                 } else {
                     weightLbs = parseFloat(weightLbsInput.value);
                 }
-                generateRandomDiet(weightLbs);
+
+                // Recalculate TDEE to ensure the button works correctly without form submission
+                const age = parseFloat(ageInput.value);
+                const gender = genderSelect.value;
+                const activity = activitySelect.value;
+                const deficit = parseFloat(goalSelect.value);
+
+                const activityMultipliers = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, 'very-active': 1.9 };
+                const weight = weightLbs * 0.453592;
+
+                let height;
+                if (unit === 'metric') {
+                    height = parseFloat(heightCmInput.value);
+                } else {
+                    const feet = parseFloat(heightFtInput.value);
+                    const inches = parseFloat(heightInInput.value);
+                    height = (feet * 30.48) + (inches * 2.54);
+                }
+
+                let bmr;
+                if (gender === 'male') {
+                    bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
+                } else { // female
+                    bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
+                }
+                tdee = bmr * activityMultipliers[activity];
+                const targetCalories = tdee - deficit;
+
+                generateRandomDiet(targetCalories, weightLbs);
                 resultsSection.scrollIntoView({ behavior: 'smooth' });
             });
 
             /**
-             * Generates a complete diet plan with random meals and scales macros.
+             * Generates a complete diet plan with random meals and scales them to a target TDEE.
+             * @param {number} targetCalories - The user's target caloric intake (TDEE - deficit).
              * @param {number} userWeightLbs - The user's weight in pounds for protein calculation.
              */
-            function generateRandomDiet(userWeightLbs) {
+            function generateRandomDiet(targetCalories, userWeightLbs) {
                 dietPlanContent.innerHTML = ''; // Clear previous content
 
                 const mealOrder = ['Desayuno', 'Almuerzo', 'Cena', 'Merienda'];
@@ -554,18 +611,14 @@
                     initialFat += selected.macros.fat;
                 });
                 
-                // 2. Calculate target protein (1g per pound of body weight)
-                const targetProtein = userWeightLbs;
+                // 2. Calculate initial total calories from the selected meals
+                const initialTotalCalories = (initialProtein * 4) + (initialCarbs * 4) + (initialFat * 9);
                 
-                // 3. Scale macros to meet the protein target
+                // 3. Scale all macros and ingredients to meet the targetCalories
                 let scaleFactor = 1;
-                if (initialProtein < targetProtein) {
-                    scaleFactor = targetProtein / initialProtein;
+                if (initialTotalCalories > 0) {
+                    scaleFactor = targetCalories / initialTotalCalories;
                 }
-
-                const finalProtein = initialProtein * scaleFactor;
-                const finalCarbs = initialCarbs * scaleFactor;
-                const finalFat = initialFat * scaleFactor;
 
                 // 4. Render the plan to the UI as a table
                 mealOrder.forEach(meal => {
@@ -601,6 +654,10 @@
                 });
 
                 // 5. Display the final scaled macros
+                const finalProtein = initialProtein * scaleFactor;
+                const finalCarbs = initialCarbs * scaleFactor;
+                const finalFat = initialFat * scaleFactor;
+
                 macrosSection.classList.remove('hidden');
                 proteinValue.textContent = `${Math.round(finalProtein)}g`;
                 carbsValue.textContent = `${Math.round(finalCarbs)}g`;
@@ -610,7 +667,7 @@
                 const totalCalories = (finalProtein * 4) + (finalCarbs * 4) + (finalFat * 9);
                 const note = document.createElement('tr');
                 note.innerHTML = `<td colspan="3" class="text-sm italic text-gray-500 pt-6">
-                    Este plan de comidas sugerido contiene aproximadamente ${Math.round(totalCalories)} calorías. Las porciones y los macros han sido ajustados para cumplir con tu objetivo de proteínas (aproximadamente 1 gramo por libra de peso corporal).
+                    Este plan de comidas sugerido contiene aproximadamente ${Math.round(totalCalories)} calorías. Las porciones y los macros han sido ajustados para que se adapten a tu objetivo calórico de ${Math.round(targetCalories)} calorías.
                 </td>`;
                 dietPlanContent.appendChild(note);
             }
