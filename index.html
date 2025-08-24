@@ -6,6 +6,8 @@
     <title>Plan de Nutrición Mediterránea</title>
     <!-- Tailwind CSS CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- html2pdf.js CDN for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -153,64 +155,73 @@
         <div id="results" class="hidden mt-8">
             <h2 class="text-xl md:text-2xl font-bold text-center text-gray-800 mb-4">Resultados</h2>
 
-            <!-- TDEE Section -->
-            <div class="bg-green-50 rounded-lg p-4 mb-6 shadow-inner border border-green-200">
-                <h3 class="text-base md:text-lg font-semibold text-green-700 mb-2">Tu Gasto Energético Diario (TDEE)</h3>
-                <p id="tdee-value" class="text-xl font-bold text-green-800">Cargando...</p>
-                <p class="text-xs md:text-sm text-gray-600 mt-2">Este es un estimado de las calorías que necesitas diariamente para mantener tu peso actual.</p>
-            </div>
+            <!-- Download PDF Button -->
+            <button id="download-pdf-btn"
+                    class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-md transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 mb-6 hidden">
+                Descargar PDF del Plan
+            </button>
+            
+            <!-- This div will be the content for the PDF -->
+            <div id="pdf-content">
+                <!-- TDEE Section -->
+                <div class="bg-green-50 rounded-lg p-4 mb-6 shadow-inner border border-green-200">
+                    <h3 class="text-base md:text-lg font-semibold text-green-700 mb-2">Tu Gasto Energético Diario (TDEE)</h3>
+                    <p id="tdee-value" class="text-xl font-bold text-green-800">Cargando...</p>
+                    <p class="text-xs md:text-sm text-gray-600 mt-2">Este es un estimado de las calorías que necesitas diariamente para mantener tu peso actual.</p>
+                </div>
 
-            <!-- Target Calories Section -->
-            <div id="target-calories-section" class="bg-blue-50 rounded-lg p-4 mb-6 shadow-inner border border-blue-200 hidden">
-                <h3 class="text-base md:text-lg font-semibold text-blue-700 mb-2">Tu Objetivo Calórico Diario</h3>
-                <p id="target-calories-value" class="text-xl font-bold text-blue-800">Cargando...</p>
-                <p class="text-xs md:text-sm text-gray-600 mt-2">Este plan de comidas está diseñado para alcanzar este objetivo calórico.</p>
-            </div>
+                <!-- Target Calories Section -->
+                <div id="target-calories-section" class="bg-blue-50 rounded-lg p-4 mb-6 shadow-inner border border-blue-200 hidden">
+                    <h3 class="text-base md:text-lg font-semibold text-blue-700 mb-2">Tu Objetivo Calórico Diario</h3>
+                    <p id="target-calories-value" class="text-xl font-bold text-blue-800">Cargando...</p>
+                    <p class="text-xs md:text-sm text-gray-600 mt-2">Este plan de comidas está diseñado para alcanzar este objetivo calórico.</p>
+                </div>
 
-            <!-- New Diet Button -->
+                <!-- Macronutrients Section -->
+                <div id="macros-section" class="bg-blue-50 rounded-lg p-4 mb-6 shadow-inner border border-blue-200 hidden">
+                    <h3 class="text-base md:text-lg font-semibold text-blue-700 mb-2">Desglose de Macronutrientes</h3>
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Proteína</p>
+                            <p id="protein-value" class="text-lg font-bold text-blue-800">-</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Carbohidratos</p>
+                            <p id="carbs-value" class="text-lg font-bold text-blue-800">-</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Grasa</p>
+                            <p id="fat-value" class="text-lg font-bold text-blue-800">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diet Plan Section -->
+                <div class="bg-green-50 rounded-lg p-6 shadow-inner border border-green-200">
+                    <h3 class="font-bold text-base md:text-lg text-green-800 mb-4">Plan de Nutrición Mediterránea Sugerido</h3>
+                    <p class="text-xs md:text-sm text-gray-600 mb-4">Las cantidades en gramos son aproximadas para ayudarte a alcanzar tus objetivos de macros.</p>
+                    <div class="overflow-x-auto">
+                        <table id="diet-plan-table" class="min-w-full">
+                            <thead>
+                                <tr>
+                                    <th>Comida</th>
+                                    <th>Ingredientes y Cantidades</th>
+                                    <th>Macros Totales (g)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="diet-plan-content">
+                                <!-- Plan will be injected here by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- New Diet Button (outside of PDF content) -->
             <button id="new-diet-btn"
-                    class="w-full py-3 px-4 bg-lime-600 hover:bg-lime-700 text-white font-bold rounded-lg shadow-md transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-offset-2 mb-6 hidden">
+                    class="w-full py-3 px-4 bg-lime-600 hover:bg-lime-700 text-white font-bold rounded-lg shadow-md transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-offset-2 mt-6 hidden">
                 Generar Nueva Dieta
             </button>
-
-            <!-- Macronutrients Section -->
-            <div id="macros-section" class="bg-blue-50 rounded-lg p-4 mb-6 shadow-inner border border-blue-200 hidden">
-                <h3 class="text-base md:text-lg font-semibold text-blue-700 mb-2">Desglose de Macronutrientes</h3>
-                <div class="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                        <p class="text-sm font-medium text-gray-600">Proteína</p>
-                        <p id="protein-value" class="text-lg font-bold text-blue-800">-</p>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-600">Carbohidratos</p>
-                        <p id="carbs-value" class="text-lg font-bold text-blue-800">-</p>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-600">Grasa</p>
-                        <p id="fat-value" class="text-lg font-bold text-blue-800">-</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Diet Plan Section -->
-            <div class="bg-green-50 rounded-lg p-6 shadow-inner border border-green-200">
-                <h3 class="font-bold text-base md:text-lg text-green-800 mb-4">Plan de Nutrición Mediterránea Sugerido</h3>
-                <p class="text-xs md:text-sm text-gray-600 mb-4">Las cantidades en gramos son aproximadas para ayudarte a alcanzar tus objetivos de macros.</p>
-                <div class="overflow-x-auto">
-                    <table id="diet-plan-table" class="min-w-full">
-                        <thead>
-                            <tr>
-                                <th>Comida</th>
-                                <th>Ingredientes y Cantidades</th>
-                                <th>Macros Totales (g)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="diet-plan-content">
-                            <!-- Plan will be injected here by JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -225,6 +236,8 @@
             const targetCaloriesValue = document.getElementById('target-calories-value');
             const dietPlanContent = document.getElementById('diet-plan-content');
             const newDietBtn = document.getElementById('new-diet-btn');
+            const downloadPdfBtn = document.getElementById('download-pdf-btn');
+            const pdfContent = document.getElementById('pdf-content');
             const macrosSection = document.getElementById('macros-section');
             const proteinValue = document.getElementById('protein-value');
             const carbsValue = document.getElementById('carbs-value');
@@ -485,9 +498,10 @@
             // Handle form submission
             nutritionForm.addEventListener('submit', async function(event) {
                 event.preventDefault();
-                // Show results section
+                // Show results section and buttons
                 resultsSection.classList.remove('hidden');
                 newDietBtn.classList.remove('hidden');
+                downloadPdfBtn.classList.remove('hidden');
 
                 const unitElement = document.querySelector('input[name="unit"]:checked');
                 const unit = unitElement ? unitElement.value : 'metric';
@@ -550,7 +564,6 @@
             newDietBtn.addEventListener('click', () => {
                 const unit = document.querySelector('input[name="unit"]:checked').value;
                 let weightLbs;
-                let tdee;
                 
                 if (unit === 'metric') {
                     weightLbs = parseFloat(weightKgInput.value) * 2.20462;
@@ -563,7 +576,6 @@
                 const gender = genderSelect.value;
                 const activity = activitySelect.value;
                 const deficit = parseFloat(goalSelect.value);
-
                 const activityMultipliers = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, 'very-active': 1.9 };
                 const weight = weightLbs * 0.453592;
 
@@ -582,11 +594,24 @@
                 } else { // female
                     bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
                 }
-                tdee = bmr * activityMultipliers[activity];
+                const tdee = bmr * activityMultipliers[activity];
                 const targetCalories = tdee - deficit;
 
                 generateRandomDiet(targetCalories, weightLbs);
                 resultsSection.scrollIntoView({ behavior: 'smooth' });
+            });
+
+            // Add event listener for the download PDF button
+            downloadPdfBtn.addEventListener('click', () => {
+                const options = {
+                    filename: 'Plan-Nutricion-Mediterranea.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                };
+
+                // Use the html2pdf library to generate and download the PDF
+                html2pdf().from(pdfContent).set(options).save();
             });
 
             /**
