@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan de Nutrición Mediterránea</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #d1fae5;
+            color: #10B981;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4 gradient-bg">
+
+    <div class="bg-white rounded-2xl shadow-xl p-8 max-w-4xl w-full border border-gray-200">
+        <h1 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-2">Planificador de Dieta Mediterránea</h1>
+        <p class="text-center text-gray-600 mb-8">Calcula tu gasto energético y obtén un plan de comidas sugerido.</p>
+
+        <!-- Input Form -->
+        <form id="nutrition-form" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                <!-- Unit Selection -->
+                <div class="md:col-span-2 lg:col-span-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Unidades</label>
+                    <div class="flex items-center space-x-4 mt-1">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="unit" value="metric" class="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500" checked>
+                            <span class="ml-2 text-gray-700">Métrico (kg, cm)</span>
+                        </label>
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="unit" value="imperial" class="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500">
+                            <span class="ml-2 text-gray-700">Imperial (lb, ft/in)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Age Input -->
+                <div>
+                    <label for="age" class="block text-sm font-medium text-gray-700 mb-1">Edad (años)</label>
+                    <input type="number" id="age" name="age" placeholder="25" required
+                           class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 transition duration-150 ease-in-out">
+                </div>
+
+                <!-- Gender Input -->
+                <div>
+                    <label for="gender" class="block text-sm font-medium text-gray-700 mb-1">Género</label>
+                    <select id="gender" name="gender" required
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 transition duration-150 ease-in-out">
+                        <option value="" disabled selected>Selecciona tu género</option>
+                        <option value="male">Masculino</option>
+                        <option value="female">Femenino</option>
+                    </select>
+                </div>
+
+                <!-- Metric Inputs (default) -->
+                <div id="metric-inputs">
+                    <label for="height-cm" class="block text-sm font-medium text-gray-700 mb-1">Altura (cm)</label>
+                    <input type="number" id="height-cm" name="heightCm" placeholder="175" required
+                           class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 transition duration-150 ease-in-out">
+                </div>
+                <div id="metric-inputs-2">
+                    <label for="weight-kg" class="block text-sm font-medium text-gray-700 mb-1">Peso (kg)</label>
+                    <input type="number" id="weight-kg" name="weightKg" placeholder="70" required
+                           class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 transition duration-150 ease-in-out">
+                </div>
+
+                <!-- Imperial Inputs (hidden by default) -->
+                <div id="imperial-inputs" class="hidden">
+                    <label for="height-ft" class="block text-sm font-medium text-gray-700 mb-1">Altura (pies y pulgadas)</label>
+                    <div class="flex space-x-2">
+                        <input type="number" id="height-ft" name="heightFt" placeholder="5"
+                               class="mt-1 block w-1/2 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 transition duration-150 ease-in-out">
+                        <input type="number" id="height-in" name="heightIn" placeholder="9"
+                               class="mt-1 block w-1/2 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 transition duration-150 ease-in-out">
+                    </div>
+                </div>
+                <div id="imperial-inputs-2" class="hidden">
+                    <label for="weight-lbs" class="block text-sm font-medium text-gray-700 mb-1">Peso (libras)</label>
+                    <input type="number" id="weight-lbs" name="weightLbs" placeholder="150"
+                           class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 transition duration-150 ease-in-out">
+                </div>
+                
+                <!-- Activity Level Input -->
+                <div class="md:col-span-2 lg:col-span-4">
+                    <label for="activity" class="block text-sm font-medium text-gray-700 mb-1">Nivel de Actividad Física</label>
+                    <select id="activity" name="activity" required
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 transition duration-150 ease-in-out">
+                        <option value="" disabled selected>Selecciona tu nivel</option>
+                        <option value="sedentary">1. Sedentario (poco o ningún ejercicio)</option>
+                        <option value="light">2. Ligero (ejercicio 1-3 días/semana)</option>
+                        <option value="moderate">3. Moderado (ejercicio 3-5 días/semana)</option>
+                        <option value="active">4. Activo (ejercicio 6-7 días/semana)</option>
+                        <option value="very-active">5. Muy Activo (ejercicio intenso diario o 2x/día)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit"
+                    class="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-md transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                Generar Plan de Nutrición
+            </button>
+        </form>
+
+        <!-- Result Display Area -->
+        <div id="results" class="hidden mt-8">
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-4">Resultados</h2>
+
+            <!-- TDEE Section -->
+            <div class="bg-green-50 rounded-lg p-4 mb-6 shadow-inner border border-green-200">
+                <h3 class="text-lg font-semibold text-green-700 mb-2">Tu Gasto Energético Diario (TDEE)</h3>
+                <p id="tdee-value" class="text-xl font-bold text-green-800">Cargando...</p>
+                <p class="text-sm text-gray-600 mt-2">Este es un estimado de las calorías que necesitas diariamente para mantener tu peso actual.</p>
+            </div>
+
+            <!-- New Diet Button -->
+            <button id="new-diet-btn"
+                    class="w-full py-3 px-4 bg-lime-600 hover:bg-lime-700 text-white font-bold rounded-lg shadow-md transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-offset-2 mb-6 hidden">
+                Generar Nueva Dieta
+            </button>
+
+            <!-- Macronutrients Section -->
+            <div id="macros-section" class="bg-blue-50 rounded-lg p-4 mb-6 shadow-inner border border-blue-200 hidden">
+                <h3 class="text-lg font-semibold text-blue-700 mb-2">Desglose de Macronutrientes</h3>
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Proteína</p>
+                        <p id="protein-value" class="text-lg font-bold text-blue-800">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Carbohidratos</p>
+                        <p id="carbs-value" class="text-lg font-bold text-blue-800">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Grasa</p>
+                        <p id="fat-value" class="text-lg font-bold text-blue-800">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diet Plan Section -->
+            <div class="bg-green-50 rounded-lg p-6 shadow-inner border border-green-200">
+                <h3 class="font-bold text-lg text-green-800 mb-4">Plan de Nutrición Mediterránea Sugerido</h3>
+                <p class="text-sm text-gray-600 mb-4">Las cantidades en gramos son aproximadas para ayudarte a alcanzar tus objetivos de macros.</p>
+                <div class="overflow-x-auto">
+                    <table id="diet-plan-table" class="min-w-full">
+                        <thead>
+                            <tr>
+                                <th>Comida</th>
+                                <th>Ingredientes y Cantidades</th>
+                                <th>Macros Totales (g)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="diet-plan-content">
+                            <!-- Plan will be injected here by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // IIFE to contain the application logic
+        (async function() {
+            // Get all necessary DOM elements
+            const nutritionForm = document.getElementById('nutrition-form');
+            const resultsSection = document.getElementById('results');
+            const tdeeValue = document.getElementById('tdee-value');
+            const dietPlanContent = document.getElementById('diet-plan-content');
+            const newDietBtn = document.getElementById('new-diet-btn');
+            const macrosSection = document.getElementById('macros-section');
+            const proteinValue = document.getElementById('protein-value');
+            const carbsValue = document.getElementById('carbs-value');
+            const fatValue = document.getElementById('fat-value');
+            const ageInput = document.getElementById('age');
+            const genderSelect = document.getElementById('gender');
+            const activitySelect = document.getElementById('activity');
+
+            // Get unit selection elements
+            const unitRadios = document.querySelectorAll('input[name="unit"]');
+            const metricInputsDiv = document.getElementById('metric-inputs');
+            const imperialInputsDiv = document.getElementById('imperial-inputs');
+            const metricInputs2Div = document.getElementById('metric-inputs-2');
+            const imperialInputs2Div = document.getElementById('imperial-inputs-2');
+            const heightCmInput = document.getElementById('height-cm');
+            const weightKgInput = document.getElementById('weight-kg');
+            const heightFtInput = document.getElementById('height-ft');
+            const heightInInput = document.getElementById('height-in');
+            const weightLbsInput = document.getElementById('weight-lbs');
+
+            // --- Meal options database with detailed ingredients and macros ---
+            // The `macros` key represents the total macros for the base recipe.
+            // The `ingredients` array lists the name, base weight in grams, and macros for each component.
+            const mealOptions = {
+                Desayuno: [
+                    {
+                        desc: "Yogur griego con frutos rojos, nueces y miel.",
+                        macros: { protein: 20, carbs: 30, fat: 15 },
+                        ingredients: [
+                            { name: "Yogur griego", weight: 200, macros: { protein: 18, carbs: 10, fat: 5 } },
+                            { name: "Frutos rojos", weight: 100, macros: { protein: 1, carbs: 15, fat: 0 } },
+                            { name: "Nueces", weight: 20, macros: { protein: 1, carbs: 5, fat: 8 } },
+                            { name: "Miel", weight: 10, macros: { protein: 0, carbs: 10, fat: 0 } }
+                        ]
+                    },
+                    {
+                        desc: "Tostada de pan integral con aguacate, tomate cherry y aceite de oliva.",
+                        macros: { protein: 8, carbs: 25, fat: 18 },
+                        ingredients: [
+                            { name: "Pan integral (una rebanada)", weight: 50, macros: { protein: 5, carbs: 20, fat: 1 } },
+                            { name: "Aguacate", weight: 50, macros: { protein: 1, carbs: 4, fat: 10 } },
+                            { name: "Tomate cherry", weight: 50, macros: { protein: 1, carbs: 1, fat: 0 } },
+                            { name: "Aceite de oliva", weight: 5, macros: { protein: 0, carbs: 0, fat: 7 } }
+                        ]
+                    },
+                    {
+                        desc: "Huevos revueltos con espinacas y pimiento, con pan de centeno.",
+                        macros: { protein: 25, carbs: 20, fat: 15 },
+                        ingredients: [
+                            { name: "Huevos (2 grandes)", weight: 100, macros: { protein: 12, carbs: 1, fat: 10 } },
+                            { name: "Espinacas", weight: 100, macros: { protein: 3, carbs: 4, fat: 0 } },
+                            { name: "Pimiento", weight: 50, macros: { protein: 1, carbs: 3, fat: 0 } },
+                            { name: "Pan de centeno (una rebanada)", weight: 60, macros: { protein: 9, carbs: 12, fat: 3 } }
+                        ]
+                    },
+                    {
+                        desc: "Avena cocida con leche de almendras, canela y semillas de chía.",
+                        macros: { protein: 12, carbs: 45, fat: 10 },
+                        ingredients: [
+                            { name: "Avena", weight: 50, macros: { protein: 7, carbs: 30, fat: 4 } },
+                            { name: "Leche de almendras", weight: 250, macros: { protein: 1, carbs: 5, fat: 3 } },
+                            { name: "Semillas de chía", weight: 15, macros: { protein: 4, carbs: 10, fat: 3 } }
+                        ]
+                    },
+                    {
+                        desc: "Smoothie de plátano, proteína en polvo y espinacas.",
+                        macros: { protein: 25, carbs: 40, fat: 5 },
+                        ingredients: [
+                            { name: "Plátano", weight: 120, macros: { protein: 1, carbs: 30, fat: 1 } },
+                            { name: "Proteína en polvo", weight: 30, macros: { protein: 22, carbs: 3, fat: 2 } },
+                            { name: "Espinacas", weight: 50, macros: { protein: 2, carbs: 7, fat: 2 } },
+                            { name: "Agua o leche", weight: 200, macros: { protein: 0, carbs: 0, fat: 0 } }
+                        ]
+                    },
+                ],
+                Almuerzo: [
+                    {
+                        desc: "Ensalada de quinoa con garbanzos, pepino, pimiento rojo, aceitunas y queso feta.",
+                        macros: { protein: 20, carbs: 50, fat: 25 },
+                        ingredients: [
+                            { name: "Quinoa cocida", weight: 150, macros: { protein: 7, carbs: 25, fat: 3 } },
+                            { name: "Garbanzos", weight: 100, macros: { protein: 9, carbs: 18, fat: 3 } },
+                            { name: "Pepino", weight: 50, macros: { protein: 0.5, carbs: 2, fat: 0 } },
+                            { name: "Pimiento rojo", weight: 50, macros: { protein: 0.5, carbs: 3, fat: 0 } },
+                            { name: "Aceitunas", weight: 20, macros: { protein: 0.5, carbs: 1, fat: 7 } },
+                            { name: "Queso feta", weight: 30, macros: { protein: 7, carbs: 1, fat: 6 } }
+                        ]
+                    },
+                    {
+                        desc: "Pescado al horno con vegetales asados y arroz integral.",
+                        macros: { protein: 35, carbs: 60, fat: 20 },
+                        ingredients: [
+                            { name: "Salmón o bacalao", weight: 150, macros: { protein: 30, carbs: 0, fat: 15 } },
+                            { name: "Arroz integral cocido", weight: 150, macros: { protein: 5, carbs: 45, fat: 1.5 } },
+                            { name: "Vegetales asados (brócoli, zanahoria)", weight: 100, macros: { protein: 2, carbs: 10, fat: 0 } },
+                            { name: "Aceite de oliva", weight: 5, macros: { protein: 0, carbs: 0, fat: 7 } }
+                        ]
+                    },
+                    {
+                        desc: "Pechuga de pollo a la plancha con una ensalada de hojas verdes y nueces.",
+                        macros: { protein: 40, carbs: 15, fat: 15 },
+                        ingredients: [
+                            { name: "Pechuga de pollo a la plancha", weight: 150, macros: { protein: 35, carbs: 0, fat: 5 } },
+                            { name: "Hojas verdes (lechuga, espinacas)", weight: 100, macros: { protein: 2, carbs: 5, fat: 0 } },
+                            { name: "Nueces", weight: 30, macros: { protein: 5, carbs: 5, fat: 10 } },
+                            { name: "Vinagreta", weight: 15, macros: { protein: 0, carbs: 5, fat: 5 } }
+                        ]
+                    },
+                    {
+                        desc: "Sándwich de pan integral con hummus, rodajas de tomate y pepino.",
+                        macros: { protein: 15, carbs: 45, fat: 15 },
+                        ingredients: [
+                            { name: "Pan integral (2 rebanadas)", weight: 100, macros: { protein: 10, carbs: 40, fat: 2 } },
+                            { name: "Hummus", weight: 50, macros: { protein: 3, carbs: 8, fat: 8 } },
+                            { name: "Tomate y pepino", weight: 50, macros: { protein: 1, carbs: 2, fat: 0 } },
+                            { name: "Aceite de oliva", weight: 5, macros: { protein: 0, carbs: 0, fat: 5 } }
+                        ]
+                    },
+                    {
+                        desc: "Bowl de lentejas con vegetales asados y un toque de limón.",
+                        macros: { protein: 25, carbs: 60, fat: 10 },
+                        ingredients: [
+                            { name: "Lentejas cocidas", weight: 150, macros: { protein: 12, carbs: 25, fat: 1 } },
+                            { name: "Vegetales asados (zanahoria, cebolla)", weight: 100, macros: { protein: 2, carbs: 15, fat: 0 } },
+                            { name: "Arroz integral", weight: 100, macros: { protein: 3, carbs: 25, fat: 1 } },
+                            { name: "Aceite de oliva", weight: 5, macros: { protein: 0, carbs: 0, fat: 5 } },
+                            { name: "Limón y hierbas", weight: 5, macros: { protein: 0, carbs: 0, fat: 0 } }
+                        ]
+                    },
+                ],
+                Cena: [
+                    {
+                        desc: "Merluza al vapor con brócoli y limón.",
+                        macros: { protein: 30, carbs: 15, fat: 10 },
+                        ingredients: [
+                            { name: "Merluza (filete)", weight: 150, macros: { protein: 28, carbs: 0, fat: 2 } },
+                            { name: "Brócoli", weight: 150, macros: { protein: 3, carbs: 10, fat: 0.5 } },
+                            { name: "Limón", weight: 10, macros: { protein: 0, carbs: 3, fat: 0 } },
+                            { name: "Aceite de oliva", weight: 5, macros: { protein: 0, carbs: 0, fat: 7 } }
+                        ]
+                    },
+                    {
+                        desc: "Pechuga de pollo a la parrilla con espárragos y patatas asadas con romero.",
+                        macros: { protein: 40, carbs: 50, fat: 15 },
+                        ingredients: [
+                            { name: "Pechuga de pollo", weight: 180, macros: { protein: 38, carbs: 0, fat: 5 } },
+                            { name: "Espárragos", weight: 100, macros: { protein: 2, carbs: 4, fat: 0.5 } },
+                            { name: "Patatas asadas", weight: 150, macros: { protein: 5, carbs: 45, fat: 1 } },
+                            { name: "Aceite de oliva", weight: 5, macros: { protein: 0, carbs: 0, fat: 7 } }
+                        ]
+                    },
+                    {
+                        desc: "Sopa de lentejas con verduras de temporada y pan integral.",
+                        macros: { protein: 25, carbs: 70, fat: 10 },
+                        ingredients: [
+                            { name: "Lentejas cocidas", weight: 150, macros: { protein: 12, carbs: 25, fat: 1 } },
+                            { name: "Verduras (zanahoria, apio, cebolla)", weight: 100, macros: { protein: 2, carbs: 10, fat: 0 } },
+                            { name: "Patata", weight: 100, macros: { protein: 2, carbs: 20, fat: 0 } },
+                            { name: "Pan integral (una rebanada)", weight: 60, macros: { protein: 9, carbs: 12, fat: 3 } },
+                            { name: "Aceite de oliva", weight: 5, macros: { protein: 0, carbs: 0, fat: 6 } }
+                        ]
+                    },
+                    {
+                        desc: "Salteado de tofu con brócoli, pimiento y jengibre.",
+                        macros: { protein: 25, carbs: 40, fat: 20 },
+                        ingredients: [
+                            { name: "Tofu firme", weight: 150, macros: { protein: 15, carbs: 5, fat: 10 } },
+                            { name: "Brócoli", weight: 100, macros: { protein: 3, carbs: 7, fat: 0 } },
+                            { name: "Pimiento y cebolla", weight: 100, macros: { protein: 2, carbs: 8, fat: 0 } },
+                            { name: "Arroz integral", weight: 100, macros: { protein: 5, carbs: 20, fat: 1 } },
+                            { name: "Aceite de sésamo", weight: 5, macros: { protein: 0, carbs: 0, fat: 9 } }
+                        ]
+                    },
+                    {
+                        desc: "Pollo al curry con leche de coco, verduras y arroz basmati.",
+                        macros: { protein: 35, carbs: 60, fat: 25 },
+                        ingredients: [
+                            { name: "Pechuga de pollo", weight: 150, macros: { protein: 30, carbs: 0, fat: 5 } },
+                            { name: "Arroz basmati", weight: 150, macros: { protein: 4, carbs: 45, fat: 1 } },
+                            { name: "Verduras (zanahoria, pimiento)", weight: 100, macros: { protein: 1, carbs: 10, fat: 0 } },
+                            { name: "Leche de coco", weight: 50, macros: { protein: 1, carbs: 5, fat: 15 } }
+                        ]
+                    },
+                ],
+                Merienda: [
+                    {
+                        desc: "Un puñado de almendras y una pieza de fruta.",
+                        macros: { protein: 7, carbs: 30, fat: 15 },
+                        ingredients: [
+                            { name: "Almendras", weight: 30, macros: { protein: 6, carbs: 6, fat: 15 } },
+                            { name: "Manzana o Naranja", weight: 150, macros: { protein: 1, carbs: 24, fat: 0 } }
+                        ]
+                    },
+                    {
+                        desc: "Hummus con bastones de zanahoria y pepino.",
+                        macros: { protein: 5, carbs: 15, fat: 10 },
+                        ingredients: [
+                            { name: "Hummus", weight: 50, macros: { protein: 3, carbs: 8, fat: 8 } },
+                            { name: "Zanahoria", weight: 50, macros: { protein: 1, carbs: 5, fat: 0 } },
+                            { name: "Pepino", weight: 50, macros: { protein: 1, carbs: 2, fat: 0 } }
+                        ]
+                    },
+                    {
+                        desc: "Una tostada de pan de centeno con requesón.",
+                        macros: { protein: 10, carbs: 20, fat: 5 },
+                        ingredients: [
+                            { name: "Pan de centeno", weight: 60, macros: { protein: 9, carbs: 12, fat: 3 } },
+                            { name: "Requesón", weight: 50, macros: { protein: 1, carbs: 8, fat: 2 } }
+                        ]
+                    },
+                    {
+                        desc: "Yogur natural con un puñado de bayas.",
+                        macros: { protein: 10, carbs: 20, fat: 5 },
+                        ingredients: [
+                            { name: "Yogur natural", weight: 150, macros: { protein: 8, carbs: 10, fat: 3 } },
+                            { name: "Bayas (arándanos, fresas)", weight: 50, macros: { protein: 2, carbs: 10, fat: 2 } }
+                        ]
+                    },
+                    {
+                        desc: "Batido de proteína con agua o leche.",
+                        macros: { protein: 25, carbs: 5, fat: 2 },
+                        ingredients: [
+                            { name: "Proteína en polvo", weight: 30, macros: { protein: 25, carbs: 3, fat: 2 } },
+                            { name: "Agua o leche", weight: 200, macros: { protein: 0, carbs: 2, fat: 0 } }
+                        ]
+                    }
+                ]
+            };
+
+            // Add event listener for unit selection change
+            unitRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    if (radio.value === 'metric') {
+                        metricInputsDiv.classList.remove('hidden');
+                        imperialInputsDiv.classList.add('hidden');
+                        metricInputs2Div.classList.remove('hidden');
+                        imperialInputs2Div.classList.add('hidden');
+                        heightCmInput.required = true;
+                        weightKgInput.required = true;
+                        heightFtInput.required = false;
+                        heightInInput.required = false;
+                        weightLbsInput.required = false;
+                    } else {
+                        metricInputsDiv.classList.add('hidden');
+                        imperialInputsDiv.classList.remove('hidden');
+                        metricInputs2Div.classList.add('hidden');
+                        imperialInputs2Div.classList.remove('hidden');
+                        heightCmInput.required = false;
+                        weightKgInput.required = false;
+                        heightFtInput.required = true;
+                        heightInInput.required = true;
+                        weightLbsInput.required = true;
+                    }
+                });
+            });
+
+            // Handle form submission
+            nutritionForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                // Show results section
+                resultsSection.classList.remove('hidden');
+                newDietBtn.classList.remove('hidden');
+                
+                const unitElement = document.querySelector('input[name="unit"]:checked');
+                const unit = unitElement ? unitElement.value : 'metric'; 
+                
+                let height, weight, weightLbs;
+                
+                if (unit === 'metric') {
+                    height = heightCmInput ? parseFloat(heightCmInput.value) : 0;
+                    weight = weightKgInput ? parseFloat(weightKgInput.value) : 0;
+                    weightLbs = weight * 2.20462;
+                } else { // imperial
+                    const feet = heightFtInput ? parseFloat(heightFtInput.value) : 0;
+                    const inches = heightInInput ? parseFloat(heightInInput.value) : 0;
+                    const pounds = weightLbsInput ? parseFloat(weightLbsInput.value) : 0;
+                    
+                    height = (feet * 30.48) + (inches * 2.54);
+                    weight = pounds * 0.453592;
+                    weightLbs = pounds;
+                }
+
+                const age = parseFloat(ageInput.value);
+                const gender = genderSelect.value;
+                const activity = activitySelect.value;
+
+                // Define activity multipliers
+                const activityMultipliers = {
+                    sedentary: 1.2,
+                    light: 1.375,
+                    moderate: 1.55,
+                    active: 1.725,
+                    'very-active': 1.9
+                };
+
+                // Calculate Basal Metabolic Rate (BMR) using Mifflin-St Jeor equation
+                let bmr;
+                if (gender === 'male') {
+                    bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
+                } else { // female
+                    bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
+                }
+
+                // Calculate Total Daily Energy Expenditure (TDEE)
+                const tdee = bmr * activityMultipliers[activity];
+
+                // Display TDEE
+                tdeeValue.textContent = `${Math.round(tdee)} calorías/día`;
+
+                // Generate and display the initial diet plan
+                generateRandomDiet(weightLbs);
+                
+                // Scroll to the results section smoothly
+                resultsSection.scrollIntoView({ behavior: 'smooth' });
+            });
+
+            // Add event listener for the new diet button
+            newDietBtn.addEventListener('click', () => {
+                const unit = document.querySelector('input[name="unit"]:checked').value;
+                let weightLbs;
+                if (unit === 'metric') {
+                     weightLbs = parseFloat(weightKgInput.value) * 2.20462;
+                } else {
+                    weightLbs = parseFloat(weightLbsInput.value);
+                }
+                generateRandomDiet(weightLbs);
+                resultsSection.scrollIntoView({ behavior: 'smooth' });
+            });
+
+            /**
+             * Generates a complete diet plan with random meals and scales macros.
+             * @param {number} userWeightLbs - The user's weight in pounds for protein calculation.
+             */
+            function generateRandomDiet(userWeightLbs) {
+                dietPlanContent.innerHTML = ''; // Clear previous content
+
+                const mealOrder = ['Desayuno', 'Almuerzo', 'Cena', 'Merienda'];
+                const selectedMeals = {};
+                let initialProtein = 0;
+                let initialCarbs = 0;
+                let initialFat = 0;
+
+                // 1. Select a random meal for each category and sum initial macros
+                mealOrder.forEach(meal => {
+                    const selected = getRandomItem(mealOptions[meal]);
+                    selectedMeals[meal] = selected;
+                    initialProtein += selected.macros.protein;
+                    initialCarbs += selected.macros.carbs;
+                    initialFat += selected.macros.fat;
+                });
+                
+                // 2. Calculate target protein (1g per pound of body weight)
+                const targetProtein = userWeightLbs;
+                
+                // 3. Scale macros to meet the protein target
+                let scaleFactor = 1;
+                if (initialProtein < targetProtein) {
+                    scaleFactor = targetProtein / initialProtein;
+                }
+
+                const finalProtein = initialProtein * scaleFactor;
+                const finalCarbs = initialCarbs * scaleFactor;
+                const finalFat = initialFat * scaleFactor;
+
+                // 4. Render the plan to the UI as a table
+                mealOrder.forEach(meal => {
+                    const selectedMeal = selectedMeals[meal];
+                    const ingredientsList = selectedMeal.ingredients.map(ing => {
+                        const scaledWeight = Math.round(ing.weight * scaleFactor);
+                        return `${scaledWeight}g de ${ing.name}`;
+                    }).join(', ');
+
+                    const scaledMacros = {
+                        protein: Math.round(selectedMeal.macros.protein * scaleFactor),
+                        carbs: Math.round(selectedMeal.macros.carbs * scaleFactor),
+                        fat: Math.round(selectedMeal.macros.fat * scaleFactor)
+                    };
+
+                    const mealCalories = (scaledMacros.protein * 4) + (scaledMacros.carbs * 4) + (scaledMacros.fat * 9);
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="font-semibold text-gray-800">${meal}</td>
+                        <td class="text-gray-700">
+                            <span class="font-medium">${selectedMeal.desc}</span><br>
+                            <span class="text-sm italic">${ingredientsList}</span>
+                        </td>
+                        <td class="text-sm text-gray-600">
+                            P: ${scaledMacros.protein}g<br>
+                            C: ${scaledMacros.carbs}g<br>
+                            G: ${scaledMacros.fat}g<br>
+                            <span class="font-bold text-gray-800">Calorías: ${Math.round(mealCalories)}</span>
+                        </td>
+                    `;
+                    dietPlanContent.appendChild(row);
+                });
+
+                // 5. Display the final scaled macros
+                macrosSection.classList.remove('hidden');
+                proteinValue.textContent = `${Math.round(finalProtein)}g`;
+                carbsValue.textContent = `${Math.round(finalCarbs)}g`;
+                fatValue.textContent = `${Math.round(finalFat)}g`;
+                
+                // 6. Add a concluding note with total calories from the scaled plan
+                const totalCalories = (finalProtein * 4) + (finalCarbs * 4) + (finalFat * 9);
+                const note = document.createElement('tr');
+                note.innerHTML = `<td colspan="3" class="text-sm italic text-gray-500 pt-6">
+                    Este plan de comidas sugerido contiene aproximadamente ${Math.round(totalCalories)} calorías. Las porciones y los macros han sido ajustados para cumplir con tu objetivo de proteínas (aproximadamente 1 gramo por libra de peso corporal).
+                </td>`;
+                dietPlanContent.appendChild(note);
+            }
+
+            /**
+             * Gets a random item from an array.
+             * @param {Array} array - The array to get a random item from.
+             * @returns {*} A random item from the array.
+             */
+            function getRandomItem(array) {
+                return array[Math.floor(Math.random() * array.length)];
+            }
+        })();
+    </script>
+</body>
+</html>
